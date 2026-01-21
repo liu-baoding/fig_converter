@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: '自定义版本号 (例如 v1.0.0)'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -14,6 +19,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Get version from pyproject.toml
+        id: get_version
+        shell: pwsh
+        run: |
+          $version = (Get-Content pyproject.toml | Select-String -Pattern 'version = "(.*)"').Matches.Groups[1].Value
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
@@ -43,8 +55,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.exe
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
+          tag_name: ${{ github.event.inputs.tag_name || format('v{0}', steps.get_version.outputs.version) }}
+          name: ${{ github.event.inputs.tag_name || format('Release v{0}', steps.get_version.outputs.version) }}
           draft: false
           prerelease: false
           generate_release_notes: true

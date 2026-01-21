@@ -26,7 +26,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='图像格式转换工具',
+    name='fig_converter',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
